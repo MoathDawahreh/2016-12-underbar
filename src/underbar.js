@@ -175,16 +175,15 @@
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
   	var arr=[];
-  	if (!Array.isArray(collection)) {
-  		arr=Object.keys(collection);
-  		accumulator=collection[arr[0]];
-  	}
-
-  	else if (accumulator===undefined) {
-  		accumulator=collection[0];
-  		collection=collection.slice(1);
-  	}
-
+	if (accumulator===undefined) {
+		accumulator=collection[0];
+		collection=collection.slice(1);
+		if (!Array.isArray(collection)) {
+	  		arr=Object.keys(collection)
+	  		accumulator=collection[arr[0]];
+	  		delete collection[arr[0]];
+	  	} 
+    }
   	_.each(collection,function(element,key){
   		accumulator=iterator(accumulator,element , key)
   	})
@@ -200,8 +199,7 @@
       if (wasFound) {
         return true;
       }
-      return item === target;
-
+      return item === target ;
     }, false);
   };
 
@@ -209,8 +207,11 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
-    return reduce(collection,function(result,elements){
-    	return result && iterator(elements)
+    return _.reduce(collection,function(result,elements){
+    	// if (iterator === undefined  ){
+    	// 	return result && elements  
+    	// }else return result && iterator(elements) ?true:false
+	return  iterator === undefined ? result && elements :  result && iterator(elements) ?true:false  //(inline if )
     },true)
   };
 
@@ -218,6 +219,9 @@
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+	return _.reduce(collection,function(result,elements){
+		return  iterator === undefined ? result || elements:  result || iterator(elements) ?true:false  //(inline if )
+	},false)
   };
 
 
@@ -232,22 +236,41 @@
   // object(s).
   //
   // Example:
-  //   var obj1 = {key1: "something"};
+  //  var obj1 = {key1: "something"};
   //   _.extend(obj1, {
   //     key2: "something new",
   //     key3: "something else new"
   //   }, {
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
+//_.extend(obj1, {key2: "something new",key3: "something else new"}, {bla: "even more stuff"});
   _.extend = function(obj) {
+  var len = arguments.length;
+  for (var i=0; i<len; i++) {
+    for (var key in arguments[i]) {
+      if (arguments[i].hasOwnProperty(key)) {
+        obj[key] = arguments[i][key];
+      }
+    }
+  }
+  return obj;
+
+  
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
-  };
-
-
+	var len = arguments.length;
+	for (var i=0; i<len; i++) {
+		for (var key in arguments[i]) {
+		      	if (arguments[0][key]===undefined) { //if key undefined push it 
+		      		obj[key] = arguments[i][key];
+		  		}
+		}
+	}
+   return obj;
+ };
   /**
    * FUNCTIONS
    * =========
